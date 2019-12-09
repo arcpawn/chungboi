@@ -1,0 +1,151 @@
+#include <Servo.h>
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+#include "DS3231.h"
+
+RTClib RTC;
+LiquidCrystal_I2C lcd(0x27,16,2);
+
+Servo servo1;
+Servo servo2;
+
+int servoflat = 50;
+int servoup = 30;
+int servodown = 150;
+
+int lightPin = A0;
+
+int timer = 0;
+int flee = 0;
+int encounterNum = 0;
+
+void setup() 
+{
+  Serial.begin(9600);
+  
+  servo1.attach(8);
+  servo2.attach(9);
+
+  servo1.write(90);
+  servo2.write(20);
+
+  Wire.begin();
+  lcd.init();                     // initialize the lcd 
+  lcd.setBacklight(HIGH);         // turn the LCD backlight on (HIGH is on, LOW is off)
+  lcd.setCursor(0,0);             // go to column 0, row 0
+  lcd.print("Shiny Hunter :D");
+  lcd.setCursor(0,1);             // go to column 0, row 1
+  lcd.print("# spotted: ");
+
+}
+
+void loop() 
+{
+  Serial.println(analogRead(lightPin));
+  
+  if(analogRead(lightPin) > 250)
+    {
+      findEncounter();
+    } 
+   
+  else if(analogRead(lightPin) < 170)
+    {
+      servo1.write(90);
+      while(analogRead(lightPin) < 190)
+        {
+          timer = timer + 1;
+          Serial.println("timer is: ");
+          Serial.println(timer);
+          delay(10); 
+        } 
+            
+      if (timer >= 630)
+        {
+            foundShiny();
+          
+            lcd.setCursor(0,0);
+            lcd.print("Shiny Found!");
+
+            lcd.setCursor(0,1);
+            lcd.print("Encounters: ");
+            lcd.print(encounterNum);           
+            
+            delay(4294967295);
+        }
+      else 
+        {
+            timer = 0;
+            flee = 1;
+            runFromEncounter();  
+            flee = 0;
+            encounterNum = encounterNum + 1;
+        }
+    }
+    if (flee == 1)
+    {
+      runFromEncounter();
+      flee = 0;
+    }
+    
+      lcd.setCursor(11,1);
+      lcd.print(encounterNum);
+}
+
+
+void findEncounter()
+{
+  int pos = 90;
+  
+      for (pos = 45; pos <= 135; pos += 10) 
+      { 
+        servo1.write(pos);      
+        delay(100);                       
+      }
+      
+      for (pos = 135; pos >= 45; pos -= 10) 
+      { 
+        servo1.write(pos);            
+        delay(100); 
+      }
+}
+
+void runFromEncounter()
+{
+          servo2.write(60);
+          delay(700);
+          servo2.write(20);
+          delay(700);
+          servo2.write(60);
+          delay(700);
+          servo2.write(20);
+          delay(700);
+          servo2.write(60);
+          delay(700);
+          servo2.write(20);
+          delay(700);
+          
+        servo2.write(20);
+
+        delay(5000);
+}
+
+void foundShiny()
+{
+            lcd.setBacklight(HIGH);
+            delay(500); 
+            lcd.setBacklight(LOW);
+            delay(500);
+            lcd.setBacklight(HIGH); 
+            delay(500);
+            lcd.setBacklight(LOW);
+            delay(500);
+            lcd.setBacklight(HIGH); 
+            delay(500);
+            lcd.setBacklight(LOW);
+            delay(500);
+            lcd.setBacklight(HIGH); 
+            delay(500);
+            lcd.setBacklight(LOW);
+            delay(500);
+            lcd.setBacklight(HIGH);
+}
